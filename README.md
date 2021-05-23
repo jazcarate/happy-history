@@ -8,7 +8,3 @@
 ## Run tests
 
 `stack test`
-
-## Development
-
-- Install dev niceties `$ stack install brittany ghcide ghcid`
