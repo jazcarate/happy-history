@@ -1,0 +1,22 @@
+name: CI
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: haskell/actions/setup@v1
+      with:
+        ghc-version: '8.10.4'
+        cabal-version: '3.2'
+        stack-version: '2.3.1'
+        enable-stack: true
+    - name: Cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-${{ hashFiles('**/package.yaml') }}-stack
+    - name: Run tests
+      run: stack test --system-ghc
