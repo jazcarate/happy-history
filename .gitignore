@@ -3,3 +3,4 @@
 tarballs/
 .stack-work/
 happy-history.cabal
+*.log

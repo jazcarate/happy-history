@@ -1,2 +1,10 @@
 cradle:
   stack:
+    - path: "./src"
+      component: "happy-history:lib"
+
+    - path: "./app/Main.hs"
+      component: "happy-history:exe:happy-history-exe"
+
+    - path: "./test"
+      component: "happy-history:test:happy-history-test"
