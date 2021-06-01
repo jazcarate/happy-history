@@ -58,27 +58,18 @@ Once you are _in_ `happy-history`, you can do exactly the same as you were doing
 ### Keybinds
 One in `happy-history` you can type as you did in `reverse-i-search`.
 You can scroll though the results with `Ctrl + R` or the vertical arrow keys (↑/↓).
-By default, the whole line is selected; but you can choose a portion of the command to be run instead.
-To change the selection, the horizontal arrow keys (→/←) move the end of the selection. With `Ctrl` you can move the selection from the beginning of the command.
+Pressing horizontal arrows keys (→/←) focuses on the command. There you can move about and edit in place.
+To go back to searching, press `Ctrl + R` or the vertical arrow keys (↑/↓) again.
 
 ### All key binds
-| Default Key bind | Name | Action |
-| --- | --- | --- |
-| Any letter | - | Type a term to be searched or replaced in the history |
-| Del | `del` | Delete the last letter typed |
-| Ctrl + R | `up` | Search the previous occurrence of the searched term |
-| Esc | `bye` | Exit |
-| Enter | `run` | Execute the current selection |
-| ↑/↓ | `up`/`down` | Scroll though occurrences of the searched term. If no term was searched, it scrolls though previous and next commands*. |
-| →/← | `tail_left`/`tail_right` | Move the end of the selection by token |
-| Ctrl + →/← | `head_left`/`head_right` | Move the beginning of the selection by token |
-| Shift + →/← | `tail_left_1`/`tail_right_1` | Move the end of the selection by one character |
-| Shift + Ctrl + →/← | `head_left_1`/`head_right_1` | Move the beginning of the selection by one character |
-| Home | `tail_start` | Move the end of the selection to the first token |
-| Ctrl + Home | `head_start` | Move the beginning of the selection to the first token |
-| End | `tail_end` | Move the end of the selection to the first token |
-| Ctrl + End | `head_end` | Move the end of the selection to the last token |
-| Ctrl + E | `editor` | Open an editor with the current selection. The resulting command will be executed. _sort of like [`fc`](http://www.gnu.org/software/bash/manual/bash.html#Bash-History-Builtins) |
+| Default Key bind |  Action |
+| --- | --- |
+| Ctrl + R | Search the previous occurrence of the searched term |
+| Esc | Exit |
+| Enter |Execute the command |
+| ↑/↓ | Scroll though occurrences of the searched term. If no term was searched, it scrolls though previous commands*. |
+| →/←/Home/End | Switch focus to the command editor, and move the cursor around |
+| Ctrl + E | Open an editor with the current command. The resulting command will be executed. _sort of like [`fc`](http://www.gnu.org/software/bash/manual/bash.html#Bash-History-Builtins)_ |
 
 ## To be defined
 - How to install in bash (`bind`? vi mode / emacs mode)
