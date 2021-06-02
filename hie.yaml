@@ -3,8 +3,8 @@ cradle:
     - path: "./src"
       component: "happy-history:lib"
 
-    - path: "./app/Main.hs"
-      component: "happy-history:exe:happy-history-exe"
+    - path: "./app"
+      component: "happy-history:exe:hh"
 
     - path: "./test"
       component: "happy-history:test:happy-history-test"

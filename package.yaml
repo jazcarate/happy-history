@@ -38,7 +38,7 @@ library:
   source-dirs: src
 
 executables:
-  happy-history-exe:
+  hh:
     main:                Main.hs
     source-dirs:         app
     dependencies:

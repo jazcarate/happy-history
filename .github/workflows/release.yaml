@@ -69,16 +69,11 @@ jobs:
         run: |
           mkdir dist
           stack install --local-bin-path dist
-      - if: matrix.os == 'windows-latest'
-        name: Set extension to .exe on Windows
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-        run: echo "::set-env name=EXT::.exe"
-
+      
       - name: Set binary path name
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-        run: echo "::set-env name=BINARY_PATH::./dist/happy-history-exe${{ env.EXT }}"
+        run: echo "::set-env name=BINARY_PATH::./dist/hh"
 
       - name: Compress binary
         uses: svenstaro/upx-action@2.0.1

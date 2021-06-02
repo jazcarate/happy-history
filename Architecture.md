@@ -19,19 +19,22 @@ stack test
 ## Bash bind command explained
 WIP: This only works in bash, with emacs mode. I'd expect this to be the norm.
 
-`bind "'\C-y': '\C-a history | hh -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"`
-                ^   ^^         ^            ^      ^   ^     ^                       ^                 ^              ^     ^-- Execute the whole line
-                |   ||         |            |      |   |     |                       |                 |              +-- Actually run the command
-                |   ||         |            |      |   |     |                       |                 +-- Re echo the prompt and the command (to fake the command being written)
-                |   ||         |            |      |   |     |                       +-- Store the new command in the history
-                |   ||         |            |      |   |     +-- `hh` stores the command in this temp file
-                |   ||         |            |      |   +-- Run `cat`
-                |   ||         |            |      +-- Store the command ☝️
-                |   ||         |            +-- Go to the end of the line
-                |   ||         +-- Run `hh`, with arguments being what you just typed**
-                |   |+-- Pipe in the history*
+`bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"`
+                ^   ^^       ^                   ^            ^      ^   ^     ^                       ^                 ^              ^     ^-- Execute the whole line
+                |   ||       |                   |            |      |   |     |                       |                 |              +-- Actually run the command
+                |   ||       |                   |            |      |   |     |                       |                 +-- Re echo the prompt and the command (to fake the command being written)
+                |   ||       |                   |            |      |   |     |                       +-- Store the new command in the history
+                |   ||       |                   |            |      |   |     +-- `hh` stores the command in this temp file
+                |   ||       |                   |            |      |   +-- Run `cat`
+                |   ||       |                   |            |      +-- Store the command ☝️
+                |   ||       |                   |            +-- Go to the end of the line
+                |   ||       |                   +-- Run `hh`, with arguments being what you just typed**
+                |   ||       +-- Store the history in a tmp file so that `hh` can access it.
+                |   |+-- Get current history
                 |   +-- The space is important, to ignore this added to the history itself
                 +--- Go to the beginning og the line (emacs style)
 
 *: as `history` not a proper program, there is no other way of getting the most up to date history.
 **: Replace with `stack run` for development use
+
+bind "'\C-y': '\C-a history > /tmp/.hh_history; stack run -- -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"
