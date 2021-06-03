@@ -31,7 +31,7 @@ main = do
 
   logHandle <- case optionsLogFile options of
     Just path -> openFile path WriteMode
-    Nothing   -> pure stderr
+    Nothing   -> pure stderr -- TODO: Handle better
 
   lo <- logOptionsHandle logHandle (optionsVerbose options)
   pc <- mkDefaultProcessContext

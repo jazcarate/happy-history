@@ -19,7 +19,8 @@ stack test
 ## Bash bind command explained
 WIP: This only works in bash, with emacs mode. I'd expect this to be the norm.
 
-`bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"`
+```
+bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"
                 ^   ^^       ^                   ^            ^      ^   ^     ^                       ^                 ^              ^     ^-- Execute the whole line
                 |   ||       |                   |            |      |   |     |                       |                 |              +-- Actually run the command
                 |   ||       |                   |            |      |   |     |                       |                 +-- Re echo the prompt and the command (to fake the command being written)
@@ -33,6 +34,7 @@ WIP: This only works in bash, with emacs mode. I'd expect this to be the norm.
                 |   |+-- Get current history
                 |   +-- The space is important, to ignore this added to the history itself
                 +--- Go to the beginning og the line (emacs style)
+```
 
 *: as `history` not a proper program, there is no other way of getting the most up to date history.
 **: Replace with `stack run` for development use
