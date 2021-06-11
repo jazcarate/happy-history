@@ -5,9 +5,9 @@ import           RIO.Process
 
 -- | Command line arguments
 data Options = Options
-  { optionsVerbose     :: !Bool
-  , optionsLogFile     :: !(Maybe FilePath)
-  , optionsInitialArgs :: !Text
+  { optionsVerbose    :: !Bool
+  , optionsLogFile    :: !(Maybe FilePath)
+  , optionsInitialCmd :: !Text
   }
 
 data App = App
@@ -23,9 +23,10 @@ instance HasProcessContext App where
   processContextL =
     lens appProcessContext (\x y -> x { appProcessContext = y })
 
-class HasInitialArgs env where
-  initialArgsL :: Lens' env Text
-instance HasInitialArgs App where
-  initialArgsL =
+class HasInitialCmd env where
+  initialCmdL :: Lens' env Text
+
+instance HasInitialCmd App where
+  initialCmdL =
     (lens appOptions (\x y -> x { appOptions = y }))
-      . (lens optionsInitialArgs (\x y -> x { optionsInitialArgs = y }))
+      . (lens optionsInitialCmd (\x y -> x { optionsInitialCmd = y }))

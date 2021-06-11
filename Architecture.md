@@ -41,3 +41,8 @@ bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e&& cmd=\$(cat /tmp/.hh
 **: Replace with `stack run` for development use
 
 bind "'\C-y': '\C-a history > /tmp/.hh_history; stack run -- -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"
+
+
+## UI.Fwk
+https://github.com/jtdaugherty/brick
+https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/

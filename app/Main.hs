@@ -2,12 +2,13 @@ module Main
   ( main
   ) where
 
-import           Import
 import           Options.Applicative.Simple
+import           RIO
 import           RIO.Process
 import qualified RIO.Text
 import           Run
 import           System.IO                      ( openFile )
+import           Types
 import           Version
 
 

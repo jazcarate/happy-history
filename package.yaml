@@ -33,6 +33,7 @@ ghc-options:
 - -Wincomplete-uni-patterns
 - -Wpartial-fields
 - -Wredundant-constraints
+- -Wno-orphans
 
 library:
   source-dirs: src
@@ -56,6 +57,7 @@ tests:
     source-dirs:         test
     dependencies:
     - happy-history
+    - QuickCheck
     - hspec
 
     ghc-options:
