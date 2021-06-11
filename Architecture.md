@@ -20,15 +20,16 @@ stack test
 WIP: This only works in bash, with emacs mode. I'd expect this to be the norm.
 
 ```
-bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e; cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"
-                ^   ^^       ^                   ^            ^      ^   ^     ^                       ^                 ^              ^     ^-- Execute the whole line
-                |   ||       |                   |            |      |   |     |                       |                 |              +-- Actually run the command
-                |   ||       |                   |            |      |   |     |                       |                 +-- Re echo the prompt and the command (to fake the command being written)
-                |   ||       |                   |            |      |   |     |                       +-- Store the new command in the history
-                |   ||       |                   |            |      |   |     +-- `hh` stores the command in this temp file
-                |   ||       |                   |            |      |   +-- Run `cat`
-                |   ||       |                   |            |      +-- Store the command ☝️
-                |   ||       |                   |            +-- Go to the end of the line
+bind "'\C-y': '\C-a history > /tmp/.hh_history; hh -- \C-e&& cmd=\$(cat /tmp/.hh_last_command); history -s \$cmd; echo \${PS1@P} \$cmd; \$cmd\C-m'"
+                ^   ^^       ^                   ^         ^  ^      ^   ^     ^                       ^                 ^              ^     ^-- Execute the whole line
+                |   ||       |                   |         |  |      |   |     |                       |                 |              +-- Actually run the command
+                |   ||       |                   |         |  |      |   |     |                       |                 +-- Re echo the prompt and the command (to fake the command being written)
+                |   ||       |                   |         |  |      |   |     |                       +-- Store the new command in the history
+                |   ||       |                   |         |  |      |   |     +-- `hh` stores the command in this temp file
+                |   ||       |                   |         |  |      |   +-- Run `cat`
+                |   ||       |                   |         |  |      +-- Store the command ☝️
+                |   ||       |                   |         |  +-- Go to the end of the line
+                |   ||       |                   |         +-- If `hh` exits with FAILURE, don't attempt to continue
                 |   ||       |                   +-- Run `hh`, with arguments being what you just typed**
                 |   ||       +-- Store the history in a tmp file so that `hh` can access it.
                 |   |+-- Get current history
