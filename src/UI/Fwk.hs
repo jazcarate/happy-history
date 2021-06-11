@@ -1,4 +1,7 @@
-module UI.Fwk where
+module UI.Fwk
+  ( module UI.Fwk
+  , module System.Console.ANSI
+  ) where
 
 
 import           Cursor
@@ -13,6 +16,9 @@ import qualified Types -- TODO Check everything is Windows compatibles
 data Widget = Widget
   { render :: IO ()
   }
+
+instance Semigroup Widget where
+  (Widget r1) <> (Widget r2) = Widget $ r1 >> r2
 
 data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd | CKTokenLeft | CKTokenRight | CKDelete
 
@@ -61,11 +67,24 @@ data App state = App
 put :: Text -> IO ()
 put = putStr . T.encodeUtf8
 
-str :: Text -> Widget
-str = Widget . put
+type Style = [SGR]
+
+withStyle :: Style -> IO c -> IO c
+withStyle style = bracket_ (setSGR style) (setSGR [Reset])
+
+noStyle :: Style
+noStyle = mempty
+
+str :: [SGR] -> Text -> Widget
+str style t = Widget $ withStyle style (put t)
 
 editorRender :: Editor -> Widget
-editorRender = str . getText . editorContent
+editorRender (Editor e) =
+  str noStyle (textCursorBefore e)
+    <> str [SetColor Foreground Vivid White, SetColor Background Dull Blue]
+           (textCursorCurrent e)
+    <> str noStyle (textCursorAfter e)
+
 
 newtype Editor = Editor
   { editorContent :: TextCursor
@@ -74,16 +93,22 @@ newtype Editor = Editor
 mkEditor :: Text -> Editor
 mkEditor = Editor . mkTextCursor
 
-editorL :: Lens' Editor TextCursor
-editorL = lens editorContent (\x y -> x { editorContent = y })
+editorContentL :: Lens' Editor TextCursor
+editorContentL = lens editorContent (\x y -> x { editorContent = y })
 
 editorEH :: EventHandler Editor Event
 editorEH editor ev = case ev of
-  (Key     word ) -> continue $ editor & editorL %~ (append word)
+  (Key     word ) -> continue $ editor & editorContentL %~ (append word)
   (Control chars) -> case chars of
-    CKDel         -> continue $ editor & editorL %~ delete
+    CKDel         -> continue $ editor & editorContentL %~ delete
     CKEscape      -> halt
     CKSubmit      -> finish editor
+    CKLeft        -> continue $ editor & editorContentL %~ prev
+    CKRight       -> continue $ editor & editorContentL %~ next -- todo handle lens!
+    CKHome        -> continue $ editor & editorContentL %~ home
+    CKEnd         -> continue $ editor & editorContentL %~ end
+    CKTokenLeft   -> continue $ editor & editorContentL %~ prevToken
+    CKTokenRight  -> continue $ editor & editorContentL %~ nextToken
     (CKUnknown c) -> do
       logDebug $ "Unknown char sequence: " <> (display $ toLit c)
       continue editor
@@ -119,6 +144,7 @@ event chars = if T.all C.isPrint chars then Key chars else Control (ctrl chars)
 
 init :: MonadUnliftIO m => m ()
 init = liftIO $ do
+  hideCursor
   cursorUp 1 -- TODO: What about multi-line prompts? env config?
   saveCursor
 
@@ -131,6 +157,7 @@ init = liftIO $ do
 close :: MonadUnliftIO m => m ()
 close = liftIO $ do
   setSGR [Reset]
+  showCursor
   restoreCursor
   clearFromCursorToScreenEnd
 

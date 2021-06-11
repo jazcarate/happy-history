@@ -15,22 +15,35 @@ instance Arbitrary T.Text where
   arbitrary = T.pack <$> arbitrary
   shrink xs = T.pack <$> shrink (T.unpack xs)
 
-type Operation = TextCursor -> TextCursor
+instance Arbitrary Operation where
+  arbitrary =
+    elements
+      $ [ Operation "prev" prev
+        , Operation "next" next
+        , Operation "home" home
+        , Operation "end"  end
+        ]
+
+instance Arbitrary TextCursor where
+  arbitrary = do
+    txt <- arbitrary
+    let cur = mkTextCursor txt
+    ops <- arbitrary
+    pure $ foldOps cur ops
+
+foldOps :: TextCursor -> [Operation] -> TextCursor
+foldOps cur ops = foldl' (&) cur (run <$> ops)
+
+data Operation = Operation
+  { name :: String
+  , run  :: TextCursor -> TextCursor
+  }
+
+instance Show Operation where
+  show = name
 
 deriving instance Show TextCursor
 deriving instance Eq TextCursor
-
-operations :: Gen Operation
-operations = elements [prev, next, home, end]
-
--- | Generates, from the same text, two cursors on different positions
-twoCursors :: Gen (TextCursor, TextCursor)
-twoCursors = do
-  innitOps <- listOf operations
-  txt      <- arbitrary
-  let cur  = mkTextCursor txt
-  let cur' = foldl' (&) cur innitOps
-  pure (cur, cur')
 
 
 spec :: Spec
@@ -38,6 +51,12 @@ spec = do
   describe "Text Cursor" $ do
     prop "roundtrip with no movement"
       $ \txt -> getText (mkTextCursor txt) `shouldBe` txt
+    it "can delete current pointed"
+      $          (getText $ delete $ mkTextCursor "foo")
+      `shouldBe` "fo"
+    it "can add to current pointed"
+      $          (getText $ append "b" $ mkTextCursor "foo")
+      `shouldBe` "foob"
     it "prev moves the cursor one char before" $ do
       let cur = prev $ prev $ mkTextCursor "foo"
       textCursorBefore cur `shouldBe` "f"
@@ -48,13 +67,31 @@ spec = do
       textCursorBefore cur `shouldBe` "fo"
       textCursorCurrent cur `shouldBe` "o"
       textCursorAfter cur `shouldBe` " "
-    prop "prev from home does nothing " $ \txt ->
-      (prev $ home $ mkTextCursor txt) `shouldBe` (home $ mkTextCursor txt)
-    prop "next from end does nothing " $ \txt ->
-      (next $ end $ mkTextCursor txt) `shouldBe` (end $ mkTextCursor txt)
+    prop "home is the same as multiple prevs" $ \txt ->
+      (home $ mkTextCursor txt)
+        `shouldBe` (foldl' (&)
+                           (mkTextCursor txt)
+                           (replicate (T.length txt) prev)
+                   )
+    prop "end is the same as multiple nexts" $ \txt ->
+      (end $ mkTextCursor txt)
+        `shouldBe` (foldl' (&)
+                           (mkTextCursor txt)
+                           (replicate (T.length txt) next)
+                   )
+    prop "prev from home does nothing "
+      $ \cur -> (prev $ home $ cur) `shouldBe` (home cur)
+    prop "next from end does nothing "
+      $ \cur -> (next $ end $ cur) `shouldBe` (end $ cur)
     prop "going home does not care about previous movements"
-      $ forAll twoCursors (\(ca, cb) -> home ca `shouldBe` home cb)
+      $ \(cur, ops) -> home cur `shouldBe` (home $ foldOps cur ops)
     prop "going end does not care about previous movements"
-      $ forAll twoCursors (\(ca, cb) -> end ca `shouldBe` end cb)
+      $ \(cur, ops) -> end cur `shouldBe` (end $ foldOps cur ops)
     prop "getting text does not care about positioning"
-      $ forAll twoCursors (\(ca, cb) -> getText ca `shouldBe` getText cb)
+      $ \(cur, ops) -> getText cur `shouldBe` (getText $ foldOps cur ops)
+    it "can move one token at a time (prev)"
+      $          (prevToken $ mkTextCursor "foo bar")
+      `shouldBe` (prev $ prev $ prev $ mkTextCursor "foo bar")
+    it "can move one token at a time (next)"
+      $          (nextToken $ home $ mkTextCursor "foo bar")
+      `shouldBe` (next $ next $ next $ home $ mkTextCursor "foo bar")
