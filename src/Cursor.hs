@@ -18,18 +18,6 @@ mkTextCursor t = TextCursor t " " mempty
 isTokenSplit :: Text -> Bool
 isTokenSplit c = c == " "
 
-nextToken :: TextCursor -> TextCursor
-nextToken txc = loop $ next txc
- where
-  loop (TextCursor _ c _) =
-    if isTokenSplit c then txc else nextToken $ next txc
-
-prevToken :: TextCursor -> TextCursor
-prevToken txc = loop $ prev txc
- where
-  loop (TextCursor _ c _) =
-    if isTokenSplit c then txc else prevToken $ prev txc
-
 next :: TextCursor -> TextCursor
 next txc@(TextCursor b c a) =
   if T.length a < 1 then txc else TextCursor (b <> c) (T.take 1 a) (T.drop 1 a)

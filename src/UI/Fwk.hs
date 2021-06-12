@@ -20,22 +20,22 @@ data Widget = Widget
 instance Semigroup Widget where
   (Widget r1) <> (Widget r2) = Widget $ r1 >> r2
 
-data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd | CKTokenLeft | CKTokenRight | CKDelete
+data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd | CKDelete
 
 ctrl :: Text -> ControlKey
-ctrl "\ESC"      = CKEscape
-ctrl "\n"        = CKSubmit
-ctrl "\ESC[D"    = CKLeft
-ctrl "\ESC[C"    = CKRight
-ctrl "\ESC[A"    = CKUp
-ctrl "\ESC[B"    = CKDown
-ctrl "\DEL"      = CKDel
-ctrl "\ESC[1;5D" = CKTokenLeft
-ctrl "\ESC[1;5C" = CKTokenRight
-ctrl "\ESC[H"    = CKHome
-ctrl "\ESC[F"    = CKEnd
-ctrl "\DC2"      = CKUp
-ctrl t           = CKUnknown t
+ctrl "\ESC"   = CKEscape
+ctrl "\n"     = CKSubmit
+ctrl "\ESC[D" = CKLeft
+ctrl "\ESC[C" = CKRight
+ctrl "\ESC[A" = CKUp
+ctrl "\ESC[B" = CKDown
+ctrl "\DEL"   = CKDel
+-- ctrl "\ESC[1;5D" = CKTokenLeft
+-- ctrl "\ESC[1;5C" = CKTokenRight
+ctrl "\ESC[H" = CKHome
+ctrl "\ESC[F" = CKEnd
+ctrl "\DC2"   = CKUp
+ctrl t        = CKUnknown t
 
 data Event = Key Text | Control ControlKey
 
@@ -104,11 +104,9 @@ editorEH editor ev = case ev of
     CKEscape      -> halt
     CKSubmit      -> finish editor
     CKLeft        -> continue $ editor & editorContentL %~ prev
-    CKRight       -> continue $ editor & editorContentL %~ next -- todo handle lens!
+    CKRight       -> continue $ editor & editorContentL %~ next
     CKHome        -> continue $ editor & editorContentL %~ home
     CKEnd         -> continue $ editor & editorContentL %~ end
-    CKTokenLeft   -> continue $ editor & editorContentL %~ prevToken
-    CKTokenRight  -> continue $ editor & editorContentL %~ nextToken
     (CKUnknown c) -> do
       logDebug $ "Unknown char sequence: " <> (display $ toLit c)
       continue editor

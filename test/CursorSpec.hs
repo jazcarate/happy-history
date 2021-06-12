@@ -89,9 +89,3 @@ spec = do
       $ \(cur, ops) -> end cur `shouldBe` (end $ foldOps cur ops)
     prop "getting text does not care about positioning"
       $ \(cur, ops) -> getText cur `shouldBe` (getText $ foldOps cur ops)
-    it "can move one token at a time (prev)"
-      $          (prevToken $ mkTextCursor "foo bar")
-      `shouldBe` (prev $ prev $ prev $ mkTextCursor "foo bar")
-    it "can move one token at a time (next)"
-      $          (nextToken $ home $ mkTextCursor "foo bar")
-      `shouldBe` (next $ next $ next $ home $ mkTextCursor "foo bar")
