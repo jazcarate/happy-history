@@ -14,13 +14,16 @@ import           System.Console.ANSI
 import qualified Types -- TODO Check everything is Windows compatibles
 
 data Widget = Widget
-  { render :: IO ()
+  { widgetRender :: IO ()
   }
 
 instance Semigroup Widget where
   (Widget r1) <> (Widget r2) = Widget $ r1 >> r2
 
-data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd | CKDelete
+instance Monoid Widget where
+  mempty = Widget mempty
+
+data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd
 
 ctrl :: Text -> ControlKey
 ctrl "\ESC"   = CKEscape
@@ -128,7 +131,7 @@ start app' = withUI . loop
   loop oldState = do
     liftIO restoreCursor
     liftIO clearFromCursorToScreenEnd
-    liftIO $ render $ appDraw app' $ oldState
+    liftIO $ widgetRender $ appDraw app' $ oldState
     key <- liftIO getKey
     let ev = event key
     res <- (appHandleEvent app') oldState ev
