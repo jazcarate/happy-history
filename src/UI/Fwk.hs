@@ -62,6 +62,14 @@ continue = pure . Continue
 
 type EventHandler state ev = state -> ev -> EventM (Next state)
 
+andThen
+  :: EventHandler state ev -> EventHandler state ev -> EventHandler state ev
+andThen a b = \state ev -> do
+  s1 <- a state ev
+  case s1 of
+    Continue s1' -> b s1' ev
+    _            -> pure s1
+
 data App state = App
   { appDraw        :: state -> Widget
   , appHandleEvent :: EventHandler state Event
@@ -99,6 +107,9 @@ mkEditor = Editor . mkTextCursor
 editorContentL :: Lens' Editor TextCursor
 editorContentL = lens editorContent (\x y -> x { editorContent = y })
 
+editorGetText :: Editor -> Text
+editorGetText = getText . editorContent
+
 editorEH :: EventHandler Editor Event
 editorEH editor ev = case ev of
   (Key     word ) -> continue $ editor & editorContentL %~ (append word)
@@ -113,6 +124,7 @@ editorEH editor ev = case ev of
     (CKUnknown c) -> do
       logDebug $ "Unknown char sequence: " <> (display $ toLit c)
       continue editor
+    _ -> continue editor
 
 toLit :: Text -> Text
 toLit t = T.concatMap (\c -> T.pack $ C.showLitChar c "") t
