@@ -46,3 +46,6 @@ bind "'\C-y': '\C-a history > /tmp/.hh_history; stack run -- -- \C-e; cmd=\$(cat
 ## UI.Fwk
 https://github.com/jtdaugherty/brick
 https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/
+
+## Developing
+`$ ghcid --command="stack repl --test happy-history:test:happy-history-test" --test="main" --warnings --reload="./src" --reload="./test" --poll`

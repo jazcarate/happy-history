@@ -2,6 +2,7 @@
 
 module UI where
 
+import           Cursor.Vector
 import           RIO
 import           RIO.List                       ( headMaybe )
 import qualified RIO.Vector                    as V
@@ -12,24 +13,33 @@ import           UI.Fwk
 data Focus = FLeft | FRight deriving (Eq)
 
 data State = State
-  { stateEditor   :: Editor
+  { statePrompt   :: Editor
+  , stateCmd      :: Editor
   , stateHistory  :: [Text]
-  , stateSelected :: (Maybe [S.Match Text])
+  , stateSelected :: Cursor [S.Match Text]
   , stateFocus    :: Focus
   }
 
 -- TODO: TH?
-stateEditorL :: Lens' State Editor
-stateEditorL = lens stateEditor (\x y -> x { stateEditor = y })
+statePromptL :: Lens' State Editor
+statePromptL = lens statePrompt (\x y -> x { statePrompt = y })
+
+stateCmdL :: Lens' State Editor
+stateCmdL = lens stateCmd (\x y -> x { stateCmd = y })
 
 stateFocusL :: Lens' State Focus
 stateFocusL = lens stateFocus (\x y -> x { stateFocus = y })
 
-stateSelectedL :: Lens' State (Maybe [S.Match Text])
+stateSelectedL :: Lens' State (Cursor [S.Match Text])
 stateSelectedL = lens stateSelected (\x y -> x { stateSelected = y })
 
 mkState :: Text -> Vector Text -> State
-mkState cmd history = State (mkEditor cmd) (V.toList history) Nothing FLeft -- TODO use vector throughout
+mkState cmd history = State { statePrompt   = (mkEditor cmd)
+                            , stateCmd      = mkEditor mempty
+                            , stateHistory  = V.toList history -- TODO use vector throughout
+                            , stateSelected = mkCursor mempty
+                            , stateFocus    = FLeft
+                            }
 
 prompt :: Bool -> Editor -> Widget
 prompt focused editor = str mempty "`" <> ed <> str mempty "': "
@@ -37,16 +47,20 @@ prompt focused editor = str mempty "`" <> ed <> str mempty "': "
   ed = if focused then editorRender editor else str [] $ editorGetText editor
 
 render :: State -> Widget
-render s = prompt (stateFocus s == FLeft) (stateEditor s)
-  <> maybe mempty (renderMatches) (stateSelected s)
+render s = prompt (stateFocus s == FLeft) (statePrompt s)
+  <> renderMatches (stateSelected s)
 
-renderMatches :: [S.Match Text] -> Widget
-renderMatches ms =
-  mconcat
-    $   S.match
-          (str [SetColor Foreground Vivid White, SetColor Background Dull Yellow])
-          (str mempty)
-    <$> ms
+renderMatches :: Cursor [S.Match Text] -> Widget
+renderMatches curr = case getSelected curr of
+  Just val ->
+    mconcat
+      $   S.match
+            (str
+              [SetColor Foreground Vivid White, SetColor Background Dull Yellow]
+            )
+            (str mempty)
+      <$> val
+  Nothing -> mempty
 
 handleEventLensed :: Lens' a b -> EventHandler b ev -> EventHandler a ev
 handleEventLensed l eh = \s ev -> do
@@ -67,19 +81,32 @@ searchEH state _ =
   continue
     $  state
     &  stateSelectedL
-    .~ (headMaybe -- TODO Cursor for up and down
-         (S.search (editorGetText $ state ^. stateEditorL) (stateHistory state))
+    .~ (mkCursor -- TODO Cursor for up and down
+         ( V.fromList
+         $ (S.search (editorGetText $ state ^. statePromptL)
+                     (stateHistory state)
+           )
+         )
        )
 
 handleType :: EventHandler State Event
 handleType state = case stateFocus state of
-  FLeft  -> (handleEventLensed stateEditorL editorEH `andThen` searchEH) state
-  FRight -> pure $ continue state
+  FLeft  -> (handleEventLensed statePromptL editorEH `andThen` searchEH) state
+  FRight -> handleEventLensed stateSelectedL handleSelected state
+
+handleSelected :: EventHandler (Cursor a) Event
+handleSelected state ev = continue $ case ev of
+  Control (CKUp) -> next state
+  Control CKDown -> prev state
+  _              -> state
+
 
 app :: App State
 app = App { appDraw = render, appHandleEvent = handleEvent }
 
 main :: State -> RIO Types.App (Maybe Text)
 main initialState = do
-  s <- start app initialState
-  pure $ editorGetText . stateEditor <$> s
+  state <- start app initialState
+  pure
+    $   (\s -> mconcat $ S.match id id <$> s)
+    <$> (getSelected . stateSelected =<< state)

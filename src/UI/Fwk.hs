@@ -4,7 +4,7 @@ module UI.Fwk
   ) where
 
 
-import           Cursor
+import           Cursor.Text
 import           Prelude                        ( getChar )
 import           RIO
 import           RIO.ByteString                 ( putStr )
@@ -23,7 +23,7 @@ instance Semigroup Widget where
 instance Monoid Widget where
   mempty = Widget mempty
 
-data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd
+data ControlKey = CKUnknown Text | CKEscape | CKSubmit | CKDel | CKSupr | CKUp | CKDown| CKRight | CKLeft | CKHome | CKEnd
 
 ctrl :: Text -> ControlKey
 ctrl "\ESC"   = CKEscape
@@ -33,6 +33,7 @@ ctrl "\ESC[C" = CKRight
 ctrl "\ESC[A" = CKUp
 ctrl "\ESC[B" = CKDown
 ctrl "\DEL"   = CKDel
+-- ctrl "\SUPR" = CKSupr
 -- ctrl "\ESC[1;5D" = CKTokenLeft
 -- ctrl "\ESC[1;5C" = CKTokenRight
 ctrl "\ESC[H" = CKHome
@@ -114,17 +115,14 @@ editorEH :: EventHandler Editor Event
 editorEH editor ev = case ev of
   (Key     word ) -> continue $ editor & editorContentL %~ (append word)
   (Control chars) -> case chars of
-    CKDel         -> continue $ editor & editorContentL %~ delete
-    CKEscape      -> halt
-    CKSubmit      -> finish editor
-    CKLeft        -> continue $ editor & editorContentL %~ prev
-    CKRight       -> continue $ editor & editorContentL %~ next
-    CKHome        -> continue $ editor & editorContentL %~ home
-    CKEnd         -> continue $ editor & editorContentL %~ end
-    (CKUnknown c) -> do
-      logDebug $ "Unknown char sequence: " <> (display $ toLit c)
-      continue editor
-    _ -> continue editor
+    CKDel    -> continue $ editor & editorContentL %~ delete
+    CKEscape -> halt
+    CKSubmit -> finish editor
+    CKLeft   -> continue $ editor & editorContentL %~ prev
+    CKRight  -> continue $ editor & editorContentL %~ next
+    CKHome   -> continue $ editor & editorContentL %~ home
+    CKEnd    -> continue $ editor & editorContentL %~ end
+    _        -> continue editor
 
 toLit :: Text -> Text
 toLit t = T.concatMap (\c -> T.pack $ C.showLitChar c "") t
@@ -145,6 +143,7 @@ start app' = withUI . loop
     liftIO clearFromCursorToScreenEnd
     liftIO $ widgetRender $ appDraw app' $ oldState
     key <- liftIO getKey
+    logDebug $ "Keypress: " <> (display $ toLit key)
     let ev = event key
     res <- (appHandleEvent app') oldState ev
     case res of

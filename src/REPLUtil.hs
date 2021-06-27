@@ -13,8 +13,7 @@ test = do
   let env = App
         { appLogFunc        = mempty
         , appProcessContext = ctx
-        , appOptions        = Options { optionsVerbose    = False
-                                      , optionsLogFile    = Nothing
+        , appOptions        = Options { optionsLogFile    = Nothing
                                       , optionsInitialCmd = "bar"
                                       }
         }

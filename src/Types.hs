@@ -5,8 +5,7 @@ import           RIO.Process
 
 -- | Command line arguments
 data Options = Options
-  { optionsVerbose    :: !Bool
-  , optionsLogFile    :: !(Maybe FilePath)
+  { optionsLogFile    :: !(Maybe FilePath)
   , optionsInitialCmd :: !Text
   }
 

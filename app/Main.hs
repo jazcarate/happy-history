@@ -20,8 +20,7 @@ main = do
     "Happy History"
     "Navigate though history and re-use commands with ease "
     (   Options
-    <$> switch (long "verbose" <> short 'v' <> help "Verbose output")
-    <*> (optional $ strOption
+    <$> (optional $ strOption
           (long "logfile" <> help "Where to log" <> metavar "FILE" <> action
             "file"
           )
@@ -34,7 +33,7 @@ main = do
     Just path -> openFile path WriteMode
     Nothing   -> pure stderr -- TODO: Handle better
 
-  lo <- logOptionsHandle logHandle (optionsVerbose options)
+  lo <- setLogMinLevel LevelDebug <$> logOptionsHandle logHandle False --TODO Not logging?
   pc <- mkDefaultProcessContext
 
   withLogFunc lo $ \lf ->

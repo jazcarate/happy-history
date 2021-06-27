@@ -1,4 +1,4 @@
-module Cursor where
+module Cursor.Text where
 
 import           RIO
 import qualified RIO.Text                      as T
@@ -43,3 +43,4 @@ append txt (TextCursor b c a) = (TextCursor (b <> txt) c a)
 
 delete :: TextCursor -> TextCursor
 delete (TextCursor b c a) = TextCursor (T.dropEnd 1 b) c a
+

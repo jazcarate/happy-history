@@ -1,10 +1,10 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
-module CursorSpec
+module Cursor.TextSpec
   ( spec
   ) where
 
-import           Cursor
+import           Cursor.Text
 import           RIO
 import qualified RIO.Text                      as T
 import           Test.Hspec

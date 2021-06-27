@@ -9,13 +9,14 @@ import qualified RIO.Text                      as T
 -- >>> search "git" ["git add .", "goto it", "foo"] ">" "<" id
 -- [[yes "git", no " add ."], [yes "g", no "oto ", yes "it"]]
 search
-  :: Text        -- ^ Pattern.
-  -> [Text]      -- ^ The list of values containing the text to search in.
-  -> [[Match Text]]         -- ^ The list of results, sorted, highest score first.
+  :: Text          -- ^ Pattern.
+  -> [Text]        -- ^ The list of values containing the text to search in.
+  -> [Result Text] -- ^ The list of results, sorted, highest score first.
 search pattern texts =
   sortOn (Down . longestYes) $ mapMaybe (matchOn pattern) texts
 
 data Match a = Match Bool a
+type Result a = [Match a]
 
 yes :: a -> Match a
 yes = Match True
@@ -26,10 +27,10 @@ no = Match False
 match :: (a -> b) -> (a -> b) -> Match a -> b
 match ifYes ifNo (Match b a) = (if b then ifYes else ifNo) a
 
-matchOn :: Text -> Text -> Maybe [Match Text]
+matchOn :: Text -> Text -> Maybe (Result Text)
 matchOn needle haystack = compact <$> matchOn' needle haystack
 
-compact :: [Match Text] -> [Match Text]
+compact :: [Match Text] -> Result Text
 compact = merge . removeEmpty
 
 merge :: (Semigroup a) => [Match a] -> [Match a]
@@ -53,5 +54,5 @@ matchOn' needle haystack = case T.uncons needle of
           Nothing -> Nothing
   Nothing -> Just $ [no haystack]
 
-longestYes :: [Match Text] -> Int
+longestYes :: Result Text -> Int
 longestYes = foldl' max 0 . (match T.length (const 0) <$>)

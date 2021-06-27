@@ -7,8 +7,6 @@ module SearchSpec
 import           RIO
 import           Search
 import           Test.Hspec
-import           Test.Hspec.QuickCheck
-import           Test.QuickCheck
 
 
 deriving instance Show a => Show (Match a)
@@ -31,3 +29,7 @@ spec = do
       [yes "g", no "x", yes "it"]
     it "hole compact" $ (matchOn "git" "gxxxit") `shouldBe` Just
       [yes "g", no "xxx", yes "it"]
+    it "prefers longer strings" $ do
+      pendingWith
+        "the algorithm is not smart enough to bubble the current letter forward"
+      (matchOn "ab" "aab") `shouldBe` Just [no "a", yes "ab"]
