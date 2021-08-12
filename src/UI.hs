@@ -3,8 +3,8 @@
 module UI where
 
 import           Cursor.Vector
+import qualified History                       as H
 import           RIO
-import           RIO.List                       ( headMaybe )
 import qualified RIO.Vector                    as V
 import qualified Search                        as S
 import qualified Types
@@ -15,7 +15,7 @@ data Focus = FLeft | FRight deriving (Eq)
 data State = State
   { statePrompt   :: Editor
   , stateCmd      :: Editor
-  , stateHistory  :: [Text]
+  , stateHistory  :: [H.PastCommand]
   , stateSelected :: Cursor [S.Match Text]
   , stateFocus    :: Focus
   }
@@ -33,10 +33,10 @@ stateFocusL = lens stateFocus (\x y -> x { stateFocus = y })
 stateSelectedL :: Lens' State (Cursor [S.Match Text])
 stateSelectedL = lens stateSelected (\x y -> x { stateSelected = y })
 
-mkState :: Text -> Vector Text -> State
+mkState :: Text -> Vector H.PastCommand -> State
 mkState cmd history = State { statePrompt   = (mkEditor cmd)
                             , stateCmd      = mkEditor mempty
-                            , stateHistory  = V.toList history -- TODO use vector throughout
+                            , stateHistory  = V.toList history
                             , stateSelected = mkCursor mempty
                             , stateFocus    = FLeft
                             }
@@ -84,7 +84,7 @@ searchEH state _ =
     .~ (mkCursor -- TODO Cursor for up and down
          ( V.fromList
          $ (S.search (editorGetText $ state ^. statePromptL)
-                     (stateHistory state)
+                     (H.command <$> stateHistory state)
            )
          )
        )

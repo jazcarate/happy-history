@@ -2,14 +2,18 @@ module Run
   ( run
   ) where
 
+import qualified History                       as H
 import           RIO
 import qualified RIO.Text                      as T
 import qualified RIO.Vector                    as V
 import           Types
 import qualified UI
 
-readHistory :: MonadIO m => m (Vector Text)
-readHistory = V.fromList <$> T.lines <$> readFileUtf8 "/tmp/.hh_history"
+
+readHistory :: MonadIO m => m (Vector H.PastCommand)
+readHistory =
+  V.mapMaybe H.pastCommand <$> V.fromList <$> T.lines <$> readFileUtf8
+    "/tmp/.hh_history"
 
 run :: RIO App ()
 run = do

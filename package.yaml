@@ -21,6 +21,7 @@ default-extensions:
 dependencies:
 - base
 - rio
+- text
 - ansi-terminal
 - process
 - read-editor

@@ -9,7 +9,6 @@ import           Cursor.Vector
 import           RIO
 import qualified RIO.Vector                    as V
 import           Test.Hspec
-import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
 
 deriving instance Eq a => Eq (Cursor a)
